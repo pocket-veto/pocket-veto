@@ -1,0 +1,9 @@
+[alias]
+build-dev   = "build --workspace"
+build-bt    = "build --workspace --features pocket-veto-bt/linux-bt"
+build-mock  = "build --workspace --features pocket-veto-bt/mock"
+test-dev    = "test --workspace --all-targets"
+test-mock   = "test --workspace --all-targets --features pocket-veto-bt/mock"
+lint        = "clippy --workspace --all-targets -- -D warnings"
+fmt-check   = "fmt --all -- --check"
+doc-check   = "doc --no-deps --workspace --document-private-items"

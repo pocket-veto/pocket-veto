@@ -1,0 +1,164 @@
+[workspace]
+members = ["crates/pocket-veto", "crates/pocket-veto-core", "crates/pocket-veto-bt"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96"
+license = "MIT"
+repository = "https://github.com/pocket-veto/pocket-veto"
+exclude = ["AGENTS.md"]
+
+[workspace.dependencies]
+pocket-veto-core = { path = "crates/pocket-veto-core", version = "0.1.0" }
+pocket-veto-bt   = { path = "crates/pocket-veto-bt",   version = "0.1.0" }
+
+# Shared across multiple crates (dedup these)
+serde            = { version = "1.0", features = ["derive"] }
+serde_json       = "1.0"
+tokio            = { version = "1.52", default-features = false, features = [
+    "rt", "rt-multi-thread", "sync", "time", "macros", "io-util",
+    "fs", "net", "process", "signal",
+] }
+toml             = "1.1"
+thiserror        = "2.0"
+dirs             = "6.0"
+anyhow           = "1.0"
+tracing          = "0.1"
+
+# Single-crate deps (still pinned at workspace for version consistency)
+rusqlite         = { version = "0.40", features = ["bundled"] }
+rand             = { version = "0.10", features = ["thread_rng"] }
+hex              = "0.4"
+bluer            = { version = "0.17", features = ["rfcomm", "bluetoothd"] }
+serialport       = { version = "4.9", default-features = false }
+clap             = { version = "4.6", features = [
+    "derive", "env",
+] }
+axum             = { version = "0.8", features = ["ws", "macros"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest          = { version = "0.13", default-features = false, features = [
+    "json", "rustls",
+] }  # reqwest 0.13 renamed the rustls-tls feature to rustls
+uuid             = { version = "1.23", features = ["v4"] }
+
+# Dev-deps (referenced from [dev-dependencies] via workspace = true)
+tower            = { version = "0.5", features = ["util"] }
+tempfile         = "3.27"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+# All three lint groups use priority = -1 so the per-lint `allow` entries below
+# reliably override the group-level deny (clippy::lint_groups_priority). This is
+# the standard pattern for "deny a group, then allow specific lints".
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+# Opt into the entire restriction lint group at deny, then selectively re-allow
+# the noisy ergonomics lints we don't want.
+restriction = { level = "deny", priority = -1 }
+# clippy discourages blanket-enabling `restriction`; we opt into the whole
+# group at deny with the curated allow-list below, so silence the meta-lint
+# that would otherwise block that strategy.
+blanket_clippy_restriction_lints = "allow"
+
+# Restriction/pedantic lints we deliberately opt OUT of (ergonomics / style).
+# Everything NOT listed here stays `deny` — notably: unwrap_used, expect_used,
+# panic, todo, unreachable, unwrap_in_result, undocumented_unsafe_blocks,
+# missing_safety_doc, mod_module_files.
+#
+# cargo's [lints] table uses `<lint_name> = "<level>"` per lint (no `clippy::`
+# prefix — implied by the [lints.clippy] section).
+#
+# --- control flow / ergonomics (would fire on essentially every fn) ---
+implicit_return = "allow"
+question_mark_used = "allow"
+shadow_unrelated = "allow"
+shadow_reuse = "allow"
+# --- ubiquitous benign operations ---
+float_arithmetic = "allow"
+arithmetic_side_effects = "allow"
+indexing_slicing = "allow"
+integer_division_remainder_used = "allow"
+# --- docs: private items should NOT be blanket-documented ---
+# private items get docs only when non-obvious, not by fiat.
+missing_docs_in_private_items = "allow"
+# --- module/visibility ergonomics ---
+single_call_fn = "allow"
+needless_raw_string_hashes = "allow"
+# --- noisy style lints that fire across most of the codebase ---
+# `#[inline]` on every public item is not a quality goal here.
+missing_inline_in_public_items = "allow"
+# Item ordering within a module is a style preference, not a correctness rule.
+arbitrary_source_item_ordering = "allow"
+# `use std::X` vs `core::X` / `alloc::X`: std is fine for a crate set that is
+# never no_std.
+std_instead_of_core = "allow"
+std_instead_of_alloc = "allow"
+alloc_instead_of_core = "allow"
+# Single-char idents (`r`, `s`, `e`, closures `|r|`) are pervasive and clear in
+# context; renaming all of them is churn without value.
+min_ident_chars = "allow"
+# Fully-qualified paths (`std::sync::Arc`) vs `use` + `Arc` is a style choice.
+absolute_paths = "allow"
+# `&str::to_string()` vs `to_owned()` is a micro-style preference.
+str_to_string = "allow"
+# exhaustive matches catch new variants.
+exhaustive_structs = "allow"
+exhaustive_enums = "allow"
+# `#[allow]` rationale is documented with `// justification:` comments rather
+# than clippy's `reason = "..."` attribute syntax.
+allow_attributes_without_reason = "allow"
+# The test-exemption strategy relies on scoped `#[allow]` on test modules and
+# `#![allow]` on integration test files; this lint flags every allow attribute,
+# so it must be off for that strategy to work at all.
+allow_attributes = "allow"
+# `1u8` vs `1_u8` vs `100_i64` — literal suffix separation is a pure style
+# preference. `unseparated_literal_suffix` flags `1u8` (wants `1_u8`);
+# `separated_literal_suffix` flags `1_i64` (wants `1i64`). They are opposite
+# directions of the same style choice, so both are allowed (no enforcement).
+unseparated_literal_suffix = "allow"
+separated_literal_suffix = "allow"
+# `pub use` re-exports are a normal module API tool.
+pub_use = "allow"
+# `assert!(x.is_err())` vs `x.unwrap_err()` in tests — test ergonomics.
+assertions_on_result_states = "allow"
+# Public item name repeating the module name (`config::config_path`) is common
+# and aids API discoverability; renaming would hurt clarity.
+module_name_repetitions = "allow"
+# Single-char lifetimes (`'a`) are conventional and clear in context here.
+single_char_lifetime_names = "allow"
+# Default numeric type inference (`let x = 0;`) is normal Rust.
+default_numeric_fallback = "allow"
+# `use std::str::FromStr` vs `use FromStr as _` — style preference.
+unused_trait_names = "allow"
+# `let _ = expr;` without a type annotation is idiomatic for "discard value".
+let_underscore_untyped = "allow"
+# The protocol's length-prefix framing is intentionally big-endian on the wire
+# (4-byte big-endian u32, per the framing spec); `to_be_bytes`/`from_be_bytes`
+# are the correct APIs, not a defect to "fix".
+big_endian_bytes = "allow"
+# Match ergonomics (`Pattern { field }` on `&Pattern`) is idiomatic Rust; the
+# explicit `&`+`ref` form this lint demands is rejected by `clippy::ref_patterns`
+# and `clippy::needless_borrowed_reference` (the restriction lints contradict
+# each other), so ergonomics wins.
+pattern_type_mismatch = "allow"
+# `{ ...; stmt() };` vs `{ ...; stmt(); }`: `semicolon_outside_block` (restriction)
+# demands the `;` OUTSIDE the block, but `semicolon_if_nothing_returned` (pedantic,
+# also deny) demands the `;` INSIDE on the last statement — the two contradict for
+# unit-returning blocks (e.g. the cfg-gated platform blocks in init.rs). The
+# idiomatic `;`-inside form is kept; this lint is allowed as unsatisfiable alongside
+# pedantic.
+semicolon_outside_block = "allow"
+# The codebase deliberately uses non-ASCII punctuation (em-dash `—`, arrow `→`)
+# in user-facing output strings for readability; plain-ASCII-only is not a goal.
+non_ascii_literal = "allow"
+
+[profile.bin-release]
+inherits = "release"
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"

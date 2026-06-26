@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pv_blue">#FF1E6FD9</color>
+    <color name="pv_green">#FF1F9D55</color>
+    <color name="pv_red">#FFD12B2B</color>
+    <color name="pv_amber">#FFE0A800</color>
+    <color name="pv_bg">#FF101418</color>
+    <color name="pv_surface">#FF1B2127</color>
+    <color name="pv_on_surface">#FFE6EDF3</color>
+</resources>

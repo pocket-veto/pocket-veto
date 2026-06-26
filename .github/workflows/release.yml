@@ -1,0 +1,150 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rust-binaries:
+    name: Rust release binary (${{ matrix.target }})
+    environment: prepare
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+          # - os: macos-latest
+          #   target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO_PROFILE: bin-release
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: release-${{ matrix.target }}
+          target: ${{ matrix.target }}
+          add-components: "false"
+
+      - name: Build release binary
+        run: cargo build --profile ${{ env.CARGO_PROFILE }}
+
+      - name: Stage artifact (unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p staging
+          cp "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/pocket-veto" "staging/pocket-veto-${{ matrix.target }}"
+
+      - name: Stage artifact (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path staging | Out-Null
+          Copy-Item "target/${{ matrix.target }}/${{ env.CARGO_PROFILE }}/pocket-veto.exe" "staging/pocket-veto-${{ matrix.target }}.exe"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ matrix.target }}
+          path: "staging/pocket-veto-${{ matrix.target }}${{ runner.os == 'Windows' && '.exe' || '' }}"
+          if-no-files-found: error
+
+  android-apk:
+    name: Android release APK
+    environment: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: ./.github/actions/setup-android
+      - name: Assemble release APK
+        run: gradle --no-daemon assembleRelease
+      - name: Stage APK
+        run: |
+          mkdir -p ../staging
+          cp app/build/outputs/apk/release/*.apk ../staging/
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: android-apk
+          path: staging/*.apk
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: [rust-binaries, android-apk]
+    environment: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Download all artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          path: artifacts
+      - name: Rename artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          # Rust binaries: rename to the final release filenames (drop the
+          # ".stripped" infix) so the install scripts can predict them.
+          cp artifacts/x86_64-unknown-linux-musl/* release/pocket-veto-x86_64-unknown-linux-musl
+          cp "artifacts/x86_64-pc-windows-msvc/"* release/pocket-veto-x86_64-pc-windows-msvc.exe
+          cp artifacts/aarch64-unknown-linux-musl/* release/pocket-veto-aarch64-unknown-linux-musl
+          # cp artifacts/aarch64-apple-darwin/* release/pocket-veto-aarch64-apple-darwin
+          # Android APK: give it a stable name.
+          cp artifacts/android-apk/*.apk release/pocket-veto.apk
+          # Install scripts so the release page has one-click install.
+          cp install.sh release/
+          cp install.ps1 release/
+          ls -la release/
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        with:
+          generate_release_notes: true
+          files: |
+            release/pocket-veto-x86_64-unknown-linux-musl
+            release/pocket-veto-x86_64-pc-windows-msvc.exe
+            release/pocket-veto-aarch64-unknown-linux-musl
+            release/pocket-veto.apk
+            release/install.sh
+            release/install.ps1
+
+  publish-crates:
+    name: Publish crates to crates.io
+    runs-on: ubuntu-latest
+    environment: release
+    needs: [release]
+    if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Publish crates
+        uses: release-plz/action@e8792575c7f2366cf6ff3ccc33ead9ace5b691c7
+        with:
+          command: release

@@ -1,0 +1,28 @@
+[package]
+name = "pocket-veto-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+description = "Shared core library for PocketVeto."
+
+[lib]
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+rusqlite   = { workspace = true }
+# `sync` for oneshot/broadcast; `macros`+`rt` for `#[tokio::test]` in this
+# crate's own tests. `time` was dropped: no `tokio::time` usage in core.
+tokio      = { workspace = true, features = ["sync", "macros", "rt"] }
+toml       = { workspace = true }
+thiserror  = { workspace = true }
+rand       = { workspace = true }
+dirs       = { workspace = true }
+hex        = { workspace = true }

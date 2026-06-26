@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PocketVeto</string>
+
+    <!-- Notification channels. -->
+    <string name="channel_persistent_name">PocketVeto service</string>
+    <string name="channel_persistent_description">Keeps the Bluetooth link to your coding agents alive in the background.</string>
+    <string name="channel_approval_name">Approval requests</string>
+    <string name="channel_approval_description">High-priority alerts when an agent asks permission to run a risky tool.</string>
+
+    <!-- Persistent notification copy. -->
+    <string name="notif_persistent_title">PocketVeto</string>
+    <string name="notif_persistent_connected">Connected to %1$s</string>
+    <string name="notif_persistent_disconnected">Disconnected — reconnecting…</string>
+    <string name="notif_persistent_no_target">No PC paired — open the app to pair.</string>
+
+    <!-- Approval notification copy. -->
+    <string name="notif_approval_title">Allow: %1$s</string>
+    <string name="notif_reply_label">Reply…</string>
+
+    <!-- Action buttons. -->
+    <string name="action_allow">Allow</string>
+    <string name="action_deny">Deny</string>
+    <string name="action_reply">Reply…</string>
+    <string name="action_stop_service">Stop service</string>
+
+    <!-- Dashboard. -->
+    <string name="dashboard_title">Agents</string>
+    <string name="dashboard_empty">No agents running.</string>
+    <string name="dashboard_status_connected">Connected</string>
+    <string name="dashboard_status_disconnected">Disconnected</string>
+    <string name="dashboard_status_connecting">Connecting…</string>
+
+    <!-- Agent card. -->
+    <string name="agent_last_tool">Last: %1$s</string>
+    <string name="agent_show_transcript">Show transcript</string>
+    <string name="agent_hide_transcript">Hide transcript</string>
+    <string name="agent_awaiting_approval">Awaiting approval · %1$s</string>
+    <string name="agent_running">%1$s · %2$s</string>
+
+    <!-- Pairing. -->
+    <string name="pairing_title">Pick your PC</string>
+    <string name="pairing_empty">No bonded devices. Pair your PC in Android Bluetooth settings first.</string>
+    <string name="pairing_open_settings">Open Bluetooth settings</string>
+</resources>

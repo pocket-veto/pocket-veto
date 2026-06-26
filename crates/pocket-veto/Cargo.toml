@@ -1,0 +1,63 @@
+[package]
+name = "pocket-veto"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+description = "PocketVeto is a tool for managing approvals for tool calls in a local network or bluetooth."
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "pocket-veto"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+pocket-veto-core = { workspace = true }
+pocket-veto-bt   = { workspace = true }
+clap              = { workspace = true }
+axum              = { workspace = true }
+# Tokio features are inherited from the workspace dep (default-features =
+# false + the curated `rt`/`rt-multi-thread`/`sync`/`time`/`macros`/`net`/
+# `signal` set). The binary directly uses: `tokio::main` (macros +
+# rt-multi-thread), `tokio::net::TcpListener` (net), `tokio::sync::{mpsc,
+# oneshot}` (sync), `tokio::spawn` (rt), `tokio::signal::ctrl_c` (signal),
+# and `tokio::time::{timeout, sleep}` (time). Previously `features = ["full"]`
+# over-enabled the whole feature set; dropping it narrows to the workspace
+# floor (feature unification still adds anything axum/pocket-veto-bt need).
+tokio             = { workspace = true }
+serde             = { workspace = true }
+serde_json        = { workspace = true }
+tracing           = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow            = { workspace = true }
+reqwest           = { workspace = true }
+uuid              = { workspace = true }
+dirs              = { workspace = true }
+thiserror         = { workspace = true }
+
+[dev-dependencies]
+tower    = { workspace = true }
+tempfile = { workspace = true }
+toml     = { workspace = true }
+# Enable the `mock` feature on the BT crate for the binary's integration tests
+# (m1_vertical_slice, progress_streaming) which drive `pocket_veto_bt::mock`.
+# `cfg(test)` is not set for dependencies, so the `#[cfg(feature = "mock")]`
+# module needs this feature to compile during `cargo test -p pocket-veto`.
+pocket-veto-bt = { workspace = true, features = ["mock"] }
+
+# `init.rs` enumerates SPP COM ports on Windows via `serialport::available_ports()`
+# (inside a `#[cfg(target_os = "windows")]` block). `pocket-veto-bt` depends on
+# `serialport` too, but a dependency of a dependency is not nameable here, so the
+# binary crate must declare it directly. Mirrors the same Windows-only entry in
+# `crates/pocket-veto-bt/Cargo.toml` so feature unification is identical and the
+# crate is compiled once. Not pulled on Linux (cfg-gated), so the devcontainer and
+# Linux CI are unaffected.
+[target.'cfg(target_os = "windows")'.dependencies]
+serialport = { workspace = true }

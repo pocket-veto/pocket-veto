@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        Material3 DayNight theme. Compose renders its own MaterialTheme on top
+        of this, so the XML theme only governs the window background, status bar,
+        and the launch screen. NoActionBar is required because Compose draws the
+        app bar in-DashboardScreen.
+    -->
+    <style name="Theme.PocketVeto" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+    </style>
+
+</resources>

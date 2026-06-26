@@ -1,0 +1,30 @@
+name: setup-rust
+description: Set up Rust from the committed rust-toolchain.toml, with cargo cache. Call this inline from a job's steps.
+
+inputs:
+  cache-key:
+    description: "Cache key suffix passed to Swatinem/rust-cache (e.g. 'ci-ubuntu-latest', 'release-x86_64-unknown-linux-musl')."
+    required: false
+    default: "ci"
+  target:
+    description: "Rust target to install (e.g. 'x86_64-unknown-linux-musl')."
+    required: false
+    default: ""
+  add-components:
+    description: "Whether to request the clippy and rustfmt components. rust-toolchain.toml already declares them; this is kept for explicitness and for callers that override the toolchain."
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+      with:
+        components: ${{ inputs.add-components == 'true' && 'clippy, rustfmt' || '' }}
+    - uses: taiki-e/setup-cross-toolchain-action@3d9770ce98eb7dbcf378563182a5e8031165f75b
+      if: ${{ inputs.target != '' }}
+      with:
+        target: ${{ inputs.target }}
+    - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      with:
+        key: ${{ inputs.cache-key }}

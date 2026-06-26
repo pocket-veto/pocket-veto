@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Bluetooth Classic access (Android 12+ runtime permissions). -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+
+    <!-- Foreground service holding the RFCOMM socket. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+
+    <!-- Action-button notifications on approval requests. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Vibrate pattern on approval notifications (high-priority channel). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- PocketVeto requires Bluetooth Classic; hide from devices without a radio. -->
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="true" />
+
+    <application
+        android:name=".PocketVetoApplication"
+        android:icon="@drawable/ic_veto"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PocketVeto">
+
+        <!-- First-launch: pick the paired PC, store its MAC, then continue. -->
+        <activity
+            android:name=".ui.PairingActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Main dashboard: agent cards + inline approval actions. -->
+        <activity
+            android:name=".ui.DashboardActivity"
+            android:exported="false" />
+
+        <!-- Foreground service owning the RFCOMM socket and notification actions. -->
+        <service
+            android:name=".service.BluetoothService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- Receiver bound to notification action PendingIntents. -->
+        <receiver
+            android:name=".service.DecisionReceiver"
+            android:enabled="true"
+            android:exported="false" />
+    </application>
+
+</manifest>

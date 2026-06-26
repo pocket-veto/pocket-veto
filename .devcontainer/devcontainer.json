@@ -1,0 +1,52 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/rust
+{
+	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.base.schema.json",
+	"name": "pocket-veto",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {},
+		"ghcr.io/devcontainers/features/rust:1": {
+			"version": "1.96"
+		},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": false
+		},
+		"ghcr.io/devcontainers/features/sshd:1": {}
+	},
+
+	// Use 'mounts' to make the cargo cache persistent in a Docker Volume.
+	"mounts": [
+		{
+			"source": "devcontainer-cargo-cache-${devcontainerId}",
+			"target": "/usr/local/cargo",
+			"type": "volume"
+		},
+		{
+			"source": "devcontainer-rustup-cache-${devcontainerId}",
+			"target": "/usr/local/rustup",
+			"type": "volume"
+		},
+		{
+			"source": "devcontainer-target-${devcontainerId}",
+			"target": "${containerWorkspaceFolder}/target",
+			"type": "volume"
+		},
+		{
+			"source": "devcontainer-cursor-sandbox-cache-${devcontainerId}",
+			"target": "/tmp/cursor-sandbox-cache",
+			"type": "volume"
+		}
+	],
+
+	"postCreateCommand": {
+		"perms": "sudo chown -R vscode:rustlang /workspaces/pocket-veto/target /tmp/cursor-sandbox-cache /usr/local/cargo /usr/local/rustup"
+	},
+
+	"postStartCommand": {
+		"targets": "rustup component add clippy rustfmt rust-src rust-std"
+	}
+}

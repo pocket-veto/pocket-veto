@@ -1,0 +1,49 @@
+[package]
+name = "pocket-veto-bt"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+exclude.workspace = true
+description = "Bluetooth transport for PocketVeto."
+
+[lib]
+path = "src/lib.rs"
+
+[lints]
+workspace = true
+
+[features]
+# Enable the Linux BlueZ/bluer backend. Default-off so the workspace builds in
+# environments without libdbus-1-dev / BlueZ dev headers (e.g. the devcontainer
+# and CI). Enable with `--features pocket-veto-bt/linux-bt` (requires libdbus-1-dev).
+default = []
+linux-bt = ["dep:bluer"]
+# Compile the in-memory `mock` backend in a non-test context. The crate's own
+# unit tests get the mock via `cfg(test)`; downstream crates' tests enable this
+# feature via a `[dev-dependencies]` entry with `features = ["mock"]`.
+mock = []
+
+[dependencies]
+pocket-veto-core = { workspace = true }
+tokio = { workspace = true, features = [
+    "rt", "rt-multi-thread", "sync", "time", "macros", "io-util",
+] }
+anyhow      = { workspace = true }
+serde_json  = { workspace = true }
+tracing     = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+bluer = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+serialport = { workspace = true }
+
+# Run only when the `mock` feature is enabled (the mock module is the
+# transport under test); `cargo test --workspace --all-targets` without
+# `--features pocket-veto-bt/mock` skips this target entirely — it is not
+# even compiled, so no spurious compile error.
+[[test]]
+name = "framing_round_trip"
+required-features = ["mock"]
