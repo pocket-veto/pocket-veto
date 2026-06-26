@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust ${{ matrix.os }}
+    environment: staging
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: ci-${{ matrix.os }}
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+      - name: clippy
+        run: cargo clippy --workspace --keep-going --all-targets -- -D warnings
+      - name: test
+        run: cargo test --workspace --all-targets
+      - name: doc
+        run: cargo doc --no-deps --workspace --document-private-items
+
+  android:
+    name: Android (build + unit tests)
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: ./.github/actions/setup-android
+      - name: Assemble debug APK
+        run: gradle --no-daemon assembleDebug
+      - name: Unit tests
+        run: gradle --no-daemon test
+      - name: Upload debug APK
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: pocket-veto-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+
+  linux-bt-build:
+    name: Linux BlueZ backend compiles
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: ./.github/actions/setup-rust
+        with:
+          cache-key: ci-linux-bt
+      - name: Install libdbus-1-dev
+        run: sudo apt-get update && sudo apt-get install -yq libdbus-1-dev
+      - name: cargo build-bt
+        run: cargo build --workspace --features pocket-veto-bt/linux-bt
