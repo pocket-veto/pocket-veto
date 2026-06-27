@@ -148,3 +148,5 @@ jobs:
         uses: release-plz/action@e8792575c7f2366cf6ff3ccc33ead9ace5b691c7
         with:
           command: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
