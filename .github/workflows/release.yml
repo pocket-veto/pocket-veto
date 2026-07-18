@@ -145,7 +145,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Publish crates
-        uses: release-plz/action@e8792575c7f2366cf6ff3ccc33ead9ace5b691c7
+        uses: release-plz/action@2eb1d8bcb770b4c48ccfaad919734b38b51958c9
         with:
           command: release
         env:
