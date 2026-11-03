@@ -11,7 +11,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 //! End-to-end integration test.
 //!
@@ -118,7 +119,9 @@ async fn m1_hook_event_flows_to_mock_phone() {
             agent_id,
             host,
             workspace,
-            ..
+            session_id: _,
+            name: _,
+            started_at: _,
         } => {
             assert_eq!(
                 agent_id, session_id,
@@ -137,7 +140,8 @@ async fn m1_hook_event_flows_to_mock_phone() {
             agent_id,
             kind,
             tool,
-            ..
+            payload: _,
+            ts: _,
         } => {
             assert_eq!(
                 agent_id, session_id,
@@ -187,7 +191,15 @@ async fn m1_approval_request_flows_and_decision_returns() {
         // Wait for the ApprovalRequest frame (skip any heartbeats).
         let approval_id = loop {
             let msg = next_non_heartbeat(&mut peer).await;
-            if let ServerMessage::ApprovalRequest { approval_id, .. } = msg {
+            if let ServerMessage::ApprovalRequest {
+                approval_id,
+                agent_id: _,
+                tool: _,
+                summary: _,
+                detail: _,
+                timeout_at: _,
+            } = msg
+            {
                 break approval_id;
             }
             // Some other frame (e.g. an AgentEvent from a prior test on the
@@ -274,7 +286,14 @@ async fn m1_multiple_events_stream_to_phone() {
         // AgentStart first.
         let msg = next_non_heartbeat(&mut peer).await;
         match msg {
-            ServerMessage::AgentStart { agent_id, .. } => {
+            ServerMessage::AgentStart {
+                agent_id,
+                session_id: _,
+                host: _,
+                name: _,
+                workspace: _,
+                started_at: _,
+            } => {
                 assert_eq!(
                     agent_id, *expected_session,
                     "frame {i}: AgentStart wrong agent_id"
@@ -285,7 +304,13 @@ async fn m1_multiple_events_stream_to_phone() {
         // Then the AgentEvent.
         let msg = next_non_heartbeat(&mut peer).await;
         match msg {
-            ServerMessage::AgentEvent { agent_id, tool, .. } => {
+            ServerMessage::AgentEvent {
+                agent_id,
+                tool,
+                kind: _,
+                payload: _,
+                ts: _,
+            } => {
                 assert_eq!(agent_id, *expected_session, "frame {i}: wrong agent_id");
                 assert_eq!(tool.as_deref(), Some(tools[i]), "frame {i}: wrong tool");
             }

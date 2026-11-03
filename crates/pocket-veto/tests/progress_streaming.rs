@@ -11,7 +11,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 //! Integration tests for the "live progress streaming" feature.
 //!
@@ -125,7 +126,11 @@ async fn agent_start_emitted_before_first_agent_event() {
     let msg = next_non_heartbeat(&mut peer).await;
     match msg {
         ServerMessage::AgentEvent {
-            agent_id, tool, ts, ..
+            agent_id,
+            tool,
+            ts,
+            kind: _,
+            payload: _,
         } => {
             assert_eq!(agent_id, "ps-agent-start");
             assert_eq!(tool.as_deref(), Some("Bash"));
@@ -183,12 +188,30 @@ async fn agent_end_emitted_on_stop_event() {
     let _ = next_non_heartbeat(&mut peer).await; // AgentStart
     let msg = next_non_heartbeat(&mut peer).await; // AgentEvent (tool_call)
     assert!(
-        matches!(msg, ServerMessage::AgentEvent { .. }),
+        matches!(
+            msg,
+            ServerMessage::AgentEvent {
+                agent_id: _,
+                kind: _,
+                tool: _,
+                payload: _,
+                ts: _
+            }
+        ),
         "expected AgentEvent for tool_call, got {msg:?}"
     );
     let msg = next_non_heartbeat(&mut peer).await; // AgentEvent (agent_end)
     assert!(
-        matches!(msg, ServerMessage::AgentEvent { .. }),
+        matches!(
+            msg,
+            ServerMessage::AgentEvent {
+                agent_id: _,
+                kind: _,
+                tool: _,
+                payload: _,
+                ts: _
+            }
+        ),
         "expected AgentEvent for agent_end, got {msg:?}"
     );
     let msg = next_non_heartbeat(&mut peer).await; // AgentEnd
@@ -251,13 +274,29 @@ async fn second_event_for_same_agent_skips_agent_start() {
     // 1. AgentStart (first event only).
     let msg = next_non_heartbeat(&mut peer).await;
     assert!(
-        matches!(msg, ServerMessage::AgentStart { .. }),
+        matches!(
+            msg,
+            ServerMessage::AgentStart {
+                agent_id: _,
+                session_id: _,
+                host: _,
+                name: _,
+                workspace: _,
+                started_at: _
+            }
+        ),
         "expected AgentStart first, got {msg:?}"
     );
     // 2. AgentEvent (first event).
     let msg = next_non_heartbeat(&mut peer).await;
     match msg {
-        ServerMessage::AgentEvent { tool, ts, .. } => {
+        ServerMessage::AgentEvent {
+            tool,
+            ts,
+            agent_id: _,
+            kind: _,
+            payload: _,
+        } => {
             assert_eq!(tool.as_deref(), Some("Bash"));
             assert_eq!(ts, 100);
         }
@@ -266,7 +305,13 @@ async fn second_event_for_same_agent_skips_agent_start() {
     // 3. AgentEvent (second event) — NO second AgentStart.
     let msg = next_non_heartbeat(&mut peer).await;
     match msg {
-        ServerMessage::AgentEvent { tool, ts, .. } => {
+        ServerMessage::AgentEvent {
+            tool,
+            ts,
+            agent_id: _,
+            kind: _,
+            payload: _,
+        } => {
             assert_eq!(tool.as_deref(), Some("Write"));
             assert_eq!(ts, 200);
         }

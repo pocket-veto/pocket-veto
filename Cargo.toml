@@ -3,16 +3,16 @@ members = ["crates/pocket-veto", "crates/pocket-veto-core", "crates/pocket-veto-
 resolver = "3"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
-rust-version = "1.96"
+rust-version = "1.99.1"
 license = "MIT"
 repository = "https://github.com/pocket-veto/pocket-veto"
 exclude = ["AGENTS.md"]
 
 [workspace.dependencies]
-pocket-veto-core = { path = "crates/pocket-veto-core", version = "0.1.0" }
-pocket-veto-bt   = { path = "crates/pocket-veto-bt",   version = "0.1.0" }
+pocket-veto-core = { path = "crates/pocket-veto-core", version = "0.1.1" }
+pocket-veto-bt   = { path = "crates/pocket-veto-bt",   version = "0.1.1" }
 
 # Shared across multiple crates (dedup these)
 serde            = { version = "1.0", features = ["derive"] }
@@ -28,7 +28,7 @@ anyhow           = "1.0"
 tracing          = "0.1"
 
 # Single-crate deps (still pinned at workspace for version consistency)
-rusqlite         = { version = "0.40", features = ["bundled"] }
+rusqlite         = { version = "0.41", features = ["bundled"] }
 rand             = { version = "0.10", features = ["thread_rng"] }
 hex              = "0.4"
 bluer            = { version = "0.17", features = ["rfcomm", "bluetoothd"] }
@@ -152,6 +152,12 @@ pattern_type_mismatch = "allow"
 # idiomatic `;`-inside form is kept; this lint is allowed as unsatisfiable alongside
 # pedantic.
 semicolon_outside_block = "allow"
+# Ignoring every field of a struct variant (`{ expected: _ }`) is rejected by
+# `unneeded_field_pattern` (wants `{ .. }`), but `{ .. }` is rejected by
+# `rest_pattern_accessible_field` (wants each accessible field named). The
+# explicit `{ field: _ }` form is kept so adding a field is a compile error;
+# this lint is allowed as unsatisfiable alongside that restriction lint.
+unneeded_field_pattern = "allow"
 # The codebase deliberately uses non-ASCII punctuation (em-dash `—`, arrow `→`)
 # in user-facing output strings for readability; plain-ASCII-only is not a goal.
 non_ascii_literal = "allow"

@@ -83,7 +83,10 @@ pub fn build_frame(payload: &[u8]) -> anyhow::Result<Vec<u8>> {
 ///
 /// Returns an error if the prefix cannot be read, the declared length
 /// overflows or exceeds `MAX_FRAME_SIZE`, or the payload read is short.
-pub async fn read_length_prefixed<R: AsyncRead + Unpin>(r: &mut R) -> anyhow::Result<Vec<u8>> {
+pub async fn read_length_prefixed<R>(r: &mut R) -> anyhow::Result<Vec<u8>>
+where
+    R: AsyncRead + Unpin,
+{
     let mut prefix = [0u8; LENGTH_PREFIX_BYTES];
     r.read_exact(&mut prefix).await?;
     let len = decode_len(prefix)?;
@@ -101,7 +104,10 @@ pub async fn read_length_prefixed<R: AsyncRead + Unpin>(r: &mut R) -> anyhow::Re
 ///
 /// Returns an error if the prefix cannot be read, the declared length
 /// overflows or exceeds `MAX_FRAME_SIZE`, or the payload read is short.
-pub fn read_length_prefixed_sync<R: Read + Unpin>(r: &mut R) -> anyhow::Result<Vec<u8>> {
+pub fn read_length_prefixed_sync<R>(r: &mut R) -> anyhow::Result<Vec<u8>>
+where
+    R: Read + Unpin,
+{
     let mut prefix = [0u8; LENGTH_PREFIX_BYTES];
     r.read_exact(&mut prefix)?;
     let len = decode_len(prefix)?;
@@ -118,10 +124,10 @@ pub fn read_length_prefixed_sync<R: Read + Unpin>(r: &mut R) -> anyhow::Result<V
 ///
 /// Returns an error if `payload` cannot be framed (overflow / too large) or
 /// the write/flush fails.
-pub async fn write_length_prefixed<W: AsyncWrite + Unpin>(
-    w: &mut W,
-    payload: &[u8],
-) -> anyhow::Result<()> {
+pub async fn write_length_prefixed<W>(w: &mut W, payload: &[u8]) -> anyhow::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
     let frame = build_frame(payload)?;
     w.write_all(&frame).await?;
     w.flush().await?;
@@ -136,10 +142,10 @@ pub async fn write_length_prefixed<W: AsyncWrite + Unpin>(
 ///
 /// Returns an error if `payload` cannot be framed (overflow / too large) or
 /// the write/flush fails.
-pub fn write_length_prefixed_sync<W: Write + Unpin>(
-    w: &mut W,
-    payload: &[u8],
-) -> anyhow::Result<()> {
+pub fn write_length_prefixed_sync<W>(w: &mut W, payload: &[u8]) -> anyhow::Result<()>
+where
+    W: Write + Unpin,
+{
     let frame = build_frame(payload)?;
     w.write_all(&frame)?;
     w.flush()?;

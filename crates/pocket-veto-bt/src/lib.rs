@@ -57,9 +57,7 @@ pub mod macos;
 /// scope. The bridge struct itself ([`bridge::BtBridge`]) is intentionally
 /// not re-exported here because callers usually want to name it explicitly
 /// with its type parameter.
-pub mod prelude {
-    pub use crate::bridge::BtTransport;
-}
+pub mod prelude;
 
 pub use bridge::{BtBridge, BtTransport};
 pub use frame::{

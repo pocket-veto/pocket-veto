@@ -11,7 +11,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 //! Big-endian length-prefixed framing round-trip tests.
 //!

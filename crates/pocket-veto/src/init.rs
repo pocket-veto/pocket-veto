@@ -80,6 +80,7 @@ pub struct InitOpts {
 impl Subcommand for InitArgs {
     #[allow(
         clippy::unused_async,
+        clippy::unused_async_trait_impl,
         reason = "InitArgs::run is async by Subcommand-trait contract (shared with Hook/Serve, which do await); init's I/O is fully synchronous, so there is no .await in this body"
     )]
     async fn run(&self, _ctx: &Ctx) -> anyhow::Result<std::process::ExitCode> {

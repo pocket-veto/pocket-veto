@@ -186,10 +186,10 @@ pub async fn run(config: Config) -> anyhow::Result<()> {
 ///
 /// Propagates any error from `build_state`, `TcpListener::bind`, or
 /// `serve_loop`.
-pub async fn run_with_bridge<T: BtTransport + Sync + 'static>(
-    config: Config,
-    transport: T,
-) -> anyhow::Result<()> {
+pub async fn run_with_bridge<T>(config: Config, transport: T) -> anyhow::Result<()>
+where
+    T: BtTransport + Sync + 'static,
+{
     let listener = TcpListener::bind(&config.bind_addr)
         .await
         .with_context(|| format!("bind {}", config.bind_addr))?;
@@ -217,11 +217,14 @@ pub async fn run_with_bridge<T: BtTransport + Sync + 'static>(
 /// # Errors
 ///
 /// Returns `anyhow::Error` if `build_state` fails.
-pub async fn run_with_bridge_on<T: BtTransport + Sync + 'static>(
+pub async fn run_with_bridge_on<T>(
     config: Config,
     transport: T,
     listener: TcpListener,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<()>
+where
+    T: BtTransport + Sync + 'static,
+{
     let parts = build_state(&config)?;
 
     // Spawn the real bridge. It owns `bridge_rx` (consumed by `run`), and
@@ -366,17 +369,17 @@ pub struct BearerAuth;
 impl FromRequestParts<AppState> for BearerAuth {
     type Rejection = ApiError;
 
-    async fn from_request_parts(
+    fn from_request_parts(
         parts: &mut axum::http::request::Parts,
         state: &AppState,
-    ) -> Result<Self, Self::Rejection> {
-        let headers = &parts.headers;
-        let token = extract_bearer(headers).ok_or(ApiError::Unauthorized)?;
-        if token.as_str() == state.config.token.as_ref() {
-            Ok(BearerAuth)
-        } else {
-            Err(ApiError::Unauthorized)
-        }
+    ) -> impl std::future::Future<Output = Result<Self, Self::Rejection>> + Send {
+        // Token check is fully synchronous; return a ready future rather than
+        // an `async fn` with no `.await` (`clippy::unused_async_trait_impl`).
+        let result = match extract_bearer(&parts.headers) {
+            Some(token) if token.as_str() == state.config.token.as_ref() => Ok(Self),
+            _ => Err(ApiError::Unauthorized),
+        };
+        std::future::ready(result)
     }
 }
 

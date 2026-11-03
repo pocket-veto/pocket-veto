@@ -134,8 +134,8 @@ impl HookOutcome {
     #[must_use]
     pub fn exit_code(&self) -> i32 {
         match self {
-            Self::Allow { .. } | Self::Ask { .. } => EXIT_OK,
-            Self::Deny { .. } => EXIT_DENY,
+            Self::Allow { stdout: _ } | Self::Ask { stdout: _ } => EXIT_OK,
+            Self::Deny { stdout: _ } => EXIT_DENY,
             Self::FireAndForgetOk => EXIT_OK,
             Self::FireAndForgetError => EXIT_OK,
             Self::ParseError => EXIT_OK,
@@ -749,7 +749,7 @@ mod tests {
 
         let (d, r) = map_wait_outcome(WaitOutcome::Approved(Decision::Ask), None);
         assert_eq!(d, Decision::Ask);
-        assert!(r.is_empty());
+        assert_eq!(r, "");
 
         let (d, r) = map_wait_outcome(WaitOutcome::Approved(Decision::Deny), Some("no".into()));
         assert_eq!(d, Decision::Deny);
