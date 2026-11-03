@@ -206,9 +206,9 @@ impl BtTransport for MockTransport {
         Ok(())
     }
 
-    async fn close(&mut self) -> anyhow::Result<()> {
+    fn close(&mut self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send {
         self.connected = false;
-        Ok(())
+        std::future::ready(Ok(()))
     }
 
     fn is_connected(&self) -> bool {

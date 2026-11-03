@@ -31,7 +31,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 
 use std::net::SocketAddr;
@@ -248,7 +249,7 @@ pub async fn next_non_heartbeat(peer: &mut MockPeer) -> ServerMessage {
                 .read_server_message()
                 .await
                 .expect("mock peer read server message");
-            if !matches!(msg, ServerMessage::Heartbeat { .. }) {
+            if !matches!(msg, ServerMessage::Heartbeat { ts: _ }) {
                 return msg;
             }
         }

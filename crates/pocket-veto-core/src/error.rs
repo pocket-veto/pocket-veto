@@ -139,7 +139,10 @@ impl CoreError {
     /// to decide whether to keep buffering or treat the stream as desynced.
     #[must_use]
     pub fn is_protocol_eof(&self) -> bool {
-        matches!(self, Self::Protocol(ProtocolError::UnexpectedEof { .. }))
+        matches!(
+            self,
+            Self::Protocol(ProtocolError::UnexpectedEof { expected: _ })
+        )
     }
 }
 

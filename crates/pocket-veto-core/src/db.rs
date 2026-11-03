@@ -500,7 +500,7 @@ mod tests {
         let evs2 = db
             .events_since("agent-1", 1_100)
             .expect("events since 1100");
-        assert!(evs2.is_empty());
+        assert_eq!(evs2, []);
 
         // agent_history mirrors events_since.
         let hist = db.agent_history("agent-1", 1_000).expect("history");

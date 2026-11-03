@@ -20,7 +20,7 @@ android {
         minSdk = 31
         targetSdk = 37
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "0.1.1"
     }
 
     buildTypes {
@@ -55,7 +55,7 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
@@ -74,7 +74,7 @@ dependencies {
     implementation("com.google.android.material:material:1.14.0")
 
     // kotlinx.serialization matches the wire JSON contract with the Rust side.
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0")
     // Coroutines drive the socket loop, heartbeat, and UI collection.
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
 

@@ -131,13 +131,14 @@ impl BtTransport for WindowsBtTransport {
         .await?
     }
 
-    async fn close(&mut self) -> anyhow::Result<()> {
+    fn close(&mut self) -> impl std::future::Future<Output = anyhow::Result<()>> + Send {
         // Drop the Arc<Mutex<...>>; when the last clone is released the port
-        // is closed by its `Drop` impl.
+        // is closed by its `Drop` impl. No `.await` here, so this is a ready
+        // future rather than an `async fn` (`clippy::unused_async_trait_impl`).
         if self.port.take().is_some() {
             debug!("windows bt: closed COM port");
         }
-        Ok(())
+        std::future::ready(Ok(()))
     }
 
     fn is_connected(&self) -> bool {

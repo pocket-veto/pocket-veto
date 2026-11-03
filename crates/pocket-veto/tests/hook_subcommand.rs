@@ -11,7 +11,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 //! Integration tests for the `pocket-veto hook` subcommand.
 //!
@@ -89,7 +90,14 @@ async fn capture_approval_id(
             rx.try_recv()
         };
         match msg {
-            Ok(ServerMessage::ApprovalRequest { approval_id, .. }) => return approval_id,
+            Ok(ServerMessage::ApprovalRequest {
+                approval_id,
+                agent_id: _,
+                tool: _,
+                summary: _,
+                detail: _,
+                timeout_at: _,
+            }) => return approval_id,
             Ok(_) => {
                 // Some other frame (e.g. an AgentEvent). Keep waiting.
                 tokio::time::sleep(Duration::from_millis(5)).await;

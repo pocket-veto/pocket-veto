@@ -680,7 +680,10 @@ impl FromSql for TimestampMs {
 /// Returns [`CoreError::Protocol`] if the JSON serialization fails, if the
 /// encoded frame (prefix + payload) would exceed [`MAX_FRAME_SIZE`], or if
 /// the payload length does not fit in a `u32`.
-pub fn encode_frame<T: Serialize>(msg: &T) -> Result<Vec<u8>> {
+pub fn encode_frame<T>(msg: &T) -> Result<Vec<u8>>
+where
+    T: Serialize,
+{
     let payload = serde_json::to_vec(msg)?;
 
     let total = LENGTH_PREFIX_BYTES
@@ -799,7 +802,10 @@ pub fn decode_client_message(buf: &[u8]) -> Result<(usize, ClientMessage)> {
     decode_typed::<ClientMessage>(buf)
 }
 
-fn decode_typed<T: DeserializeOwned>(buf: &[u8]) -> Result<(usize, T)> {
+fn decode_typed<T>(buf: &[u8]) -> Result<(usize, T)>
+where
+    T: DeserializeOwned,
+{
     let (consumed, value) = decode_frame(buf)?;
     let typed = serde_json::from_value(value)?;
     Ok((consumed, typed))

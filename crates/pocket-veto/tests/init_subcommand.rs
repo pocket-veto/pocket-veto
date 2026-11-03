@@ -11,7 +11,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 //! Integration tests for the `pocket-veto init` subcommand's pure helpers.
 //!

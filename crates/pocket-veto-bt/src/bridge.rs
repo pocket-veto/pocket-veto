@@ -310,7 +310,15 @@ impl<T: BtTransport> BtBridge<T> {
     /// Forward one outbox [`ServerMessage`] over the transport, tracking
     /// `known_agents` on `AgentStart`.
     async fn handle_outbox_message(&mut self, msg: &ServerMessage) -> anyhow::Result<()> {
-        if let ServerMessage::AgentStart { agent_id, .. } = msg {
+        if let ServerMessage::AgentStart {
+            agent_id,
+            session_id: _,
+            host: _,
+            name: _,
+            workspace: _,
+            started_at: _,
+        } = msg
+        {
             self.known_agents.insert(agent_id.clone().into());
         }
         let payload =
@@ -554,7 +562,8 @@ fn now_ms() -> i64 {
     clippy::unreachable,
     clippy::unwrap_in_result,
     clippy::indexing_slicing,
-    clippy::wildcard_enum_match_arm
+    clippy::wildcard_enum_match_arm,
+    clippy::unneeded_field_pattern
 )]
 mod tests {
     use super::*;
@@ -667,7 +676,11 @@ mod tests {
             .expect("peer read ok");
         match msg {
             ServerMessage::AgentEvent {
-                agent_id, tool, ts, ..
+                agent_id,
+                tool,
+                ts,
+                kind: _,
+                payload: _,
             } => {
                 assert_eq!(agent_id, "replay-agent");
                 assert_eq!(tool.as_deref(), Some("Bash"));
@@ -683,7 +696,11 @@ mod tests {
             .expect("peer read ok");
         match msg {
             ServerMessage::AgentEvent {
-                agent_id, tool, ts, ..
+                agent_id,
+                tool,
+                ts,
+                kind: _,
+                payload: _,
             } => {
                 assert_eq!(agent_id, "replay-agent");
                 assert_eq!(tool.as_deref(), Some("Write"));
@@ -764,7 +781,14 @@ mod tests {
             .expect("peer reads orphan AgentStart within timeout")
             .expect("peer read ok");
         match msg {
-            ServerMessage::AgentStart { agent_id, .. } => {
+            ServerMessage::AgentStart {
+                agent_id,
+                session_id: _,
+                host: _,
+                name: _,
+                workspace: _,
+                started_at: _,
+            } => {
                 assert_eq!(agent_id, "orphan-agent");
             }
             other => panic!("expected orphan AgentStart, got {other:?}"),

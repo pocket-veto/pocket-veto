@@ -11,7 +11,8 @@
     clippy::wildcard_enum_match_arm,
     clippy::ref_patterns,
     clippy::print_stderr,
-    clippy::mem_forget
+    clippy::mem_forget,
+    clippy::unneeded_field_pattern
 )]
 //! Integration tests for the `pocket-veto serve` HTTP API.
 //!
@@ -528,7 +529,8 @@ async fn approval_request_forwarded_to_bridge_outbox() {
             tool,
             summary,
             detail,
-            ..
+            approval_id: _,
+            timeout_at: _,
         } => {
             assert_eq!(agent_id, "agent-bridge");
             assert_eq!(tool, "Bash");
@@ -564,7 +566,14 @@ async fn event_forwarded_to_bridge_outbox() {
     // metadata) before the AgentEvent. Consume both in order.
     let start = rx.recv().await.expect("bridge outbox AgentStart");
     match start {
-        ServerMessage::AgentStart { agent_id, host, .. } => {
+        ServerMessage::AgentStart {
+            agent_id,
+            host,
+            session_id: _,
+            name: _,
+            workspace: _,
+            started_at: _,
+        } => {
             assert_eq!(agent_id, "agent-ev-bridge");
             // The event body did not set `host`, so the server defaults to
             // "claude" -> Host::Claude.
@@ -579,7 +588,7 @@ async fn event_forwarded_to_bridge_outbox() {
             kind,
             tool,
             ts,
-            ..
+            payload: _,
         } => {
             assert_eq!(agent_id, "agent-ev-bridge");
             assert_eq!(kind, pocket_veto_core::protocol::EventKind::Shell);
